@@ -64,10 +64,13 @@ def F1(out, cond):
 		if o == 0 and c == 1:
 			fn += 1
 
-	precision = float(tp) / (tp + fp)
-	recall = float(tp) / (tp + fn)
+	# precision = float(tp) / (tp + fp)
+	# recall = float(tp) / (tp + fn)
 
-	f1 = 2 * (precision) * (recall) / (precision + recall)
+	# f1 = 2 * (precision) * (recall) / (precision + recall)
+	
+	f1 = 2.0 * tp / (2.0 * tp + fp + fn)
+
 	return f1
 
 
