@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 
 def main():
 	data = read_file('chips.txt')
-
+	normalize(data, 0)
+	normalize(data, 1)
 	group0 = [x for x in data if x[2] == 0]
 	group1 = [x for x in data if x[2] == 1]
 
