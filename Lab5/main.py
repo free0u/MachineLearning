@@ -6,6 +6,7 @@ import math
 user_ids = set()
 item_ids = set()
 rates = {}
+raw_rates = []
 rates_valid = []
 test_ids = []
 
@@ -26,6 +27,8 @@ def read_train():
 		next(reader)
 		for row in reader:
 			user, item, rate = map(int, row)
+
+			raw_rates.append((user, item, rate))
 
 			user_ids.add(user)
 			item_ids.add(item)
@@ -63,81 +66,58 @@ def train(f, lam, phi):
 		bu[u] = 0.0
 		pu[u] = [0.01] * f
 
-	cnt = 0
-	old_measure = 10 ** 9
+	cnt_iter = 0
+	old_rmse = 10 ** 9
+
 	while True:
-		cnt += 1
-		# if cnt > 1:
-		# 	break
+		cnt_iter += 1
 
-		measure = 0.0
+		rmse = 0.0
 		cnt_rates = 0
-		for user in rates:
-			items = rates[user]
-			for item in items:
-				rate = items[item]
-				cnt_rates += 1
-				
-				predicted = predict(user, item)
-				
-				error = rate - predicted
-				measure += error ** 2
-				bu[user] += phi * (error - lam * bu[user])
-				bi[item] += phi * (error - lam * bi[item])
 
-				for i in range(f):
-					qi[item][i] += phi * (error * pu[user][i]+ lam * qi[item][i])
-					pu[user][i] += phi * (error * qi[item][i] + lam * pu[user][i])
+		for (user, item, rate) in raw_rates:
+			cnt_rates += 1
+			
+			predicted = predict(user, item)
+			
+			error = rate - predicted
+			rmse += error ** 2
 
-		measure /= cnt_rates
-		print(cnt, ':', measure)
+			bu[user] += phi * (error - lam * bu[user])
+			bi[item] += phi * (error - lam * bi[item])
 
-		if old_measure < measure or cnt > 30:
+			for i in range(f):
+				tq = qi[item][i] 
+				tp = pu[user][i]
+				qi[item][i] = tq + phi * (error * tp + lam * tq)
+				pu[user][i] = tp + phi * (error * tq + lam * tp)
+
+		rmse /= cnt_rates
+		print(cnt_iter, ':', rmse)
+
+		if (abs(old_rmse - rmse) < 1e-6) or (cnt_iter > 30):
 			break
 
-		old_measure = measure
+		old_rmse = rmse
 
 def dot_product(a, b):
-	assert len(a) == len(b)
 	res = 0.0
-	for (x, y) in zip(a, b):
-		res += x * y
+	for i in range(len(a)):
+		res += a[i] * b[i]
 	return res
-
-# def mul_vec_scalar(a, x):
-# 	res = a[:]
-# 	for (i, v) in enumerate(res):
-# 		res[i] = v * x
-# 	return res
-
-# def add_vec_vec(a, b):
-# 	res = a[:]
-# 	for (i, v) in enumerate(res):
-# 		res[i] = a[i] + b[i]
-# 	return res
-
-# def sub_vec_vec(a, b):
-# 	res = a[:]
-# 	for (i, v) in enumerate(res):
-# 		res[i] = a[i] - b[i]
-# 	return res
-
 
 def predict(user, item):
 	new_user = not user in user_ids
 	new_item = not item in item_ids
-	if new_user and new_item:
-		return u_mean
-	if new_user and not new_item:
-		return item_mean[item]
-	if not new_user and new_item:
-		return user_mean[user]
 
 	res = 0
 	res += u_mean
-	res += bi[item]
-	res += bu[user]
-	res += dot_product(qi[item], pu[user])
+	if not new_item:
+		res += bi[item]
+	if not new_user:
+		res += bu[user]
+	if not new_item and not new_user:
+		res += dot_product(qi[item], pu[user])
 	return res
 
 
@@ -191,8 +171,39 @@ def main():
 	print('> main')
 	preprocess()
 
-	 # train(f, lam, phi):
-	train(5, 0.0001220703125, 0.005)
+
+	# f = 5
+	# lam = 0.00021207031250000002
+	# phi = 0.008
+
+	# lams = [lam + i * 0.00001 for i in range(-3, 4)]
+	# phis = [phi + i * 0.0001 for i in range(-3, 4)]
+
+	# best_p = (-1, -1)
+	# best_v = 100000
+
+	# cntt = 0
+	# for lam in lams:
+	# 	for phi in phis:
+	# 		print("========== best:", best_p)
+	# 		print(cntt)
+	# 		cntt += 1
+	# 		try:
+	# 			print(f, lam, phi)
+	# 			train(f, lam, phi)
+	# 			rmse = test_on_valid()
+	# 			print(rmse)
+	# 			if rmse < best_v:
+	# 				best_v = rmse
+	# 				best_p = (lam, phi)
+	# 			print("best: ", best_p)
+	# 		except:
+	# 			print("oops")
+
+	# print("total best:", best_p)
+	# return
+
+	# train(f, lam, phi)
 	# print('rmse =', test_on_valid())
 	# return
 
@@ -224,11 +235,21 @@ def main():
 	# 	lam /= 2
 
 
+    # found by something like grid search
+	f = 5
+	lam = 0.00017207031250000002
+	phi = 0.0076
+	train(f, lam, phi)
+
 	with open('answer.csv', 'w', newline='') as csvfile:
 		writer = csv.writer(csvfile, delimiter=',')
 		writer.writerow(['id', 'rating'])
 		for (id, user, item) in test_ids:
 			rate = predict(user, item)
+			if rate < 1:
+				rate = 1
+			if rate > 5:
+				rate = 5
 			writer.writerow([id, rate])
 
 	print('rmse =', test_on_valid())
