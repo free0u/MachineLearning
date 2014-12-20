@@ -1,19 +1,15 @@
-import java.util.Arrays;
-
 /**
  * Created by free0u on 12/20/14.
  */
 public class Image {
-    double[][] data;
-    int type;
+    double[] data;
+    byte type;
 
-    public Image(byte[][] d, int type) {
-        data = new double[d.length][d.length];
+    public Image(byte[] d, byte type) {
+        data = new double[d.length];
         for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data.length; j++) {
-                byte t = d[i][j];
-                data[i][j] = (double)t / 255;
-            }
+            byte t = d[i];
+            data[i] = (double) t / 255;
         }
         this.type = type;
     }
@@ -24,10 +20,10 @@ public class Image {
         res.append(type);
         res.append("\n");
         for (int i = 0; i < data.length; i++) {
-            for (int j = 0; j < data.length; j++) {
-                res.append(data[i][j] < 0.5 ? 0 : 1);
+            res.append(data[i] < 0.5 ? 0 : 1);
+            if (i % 28 == 0) {
+                res.append("\n");
             }
-            res.append("\n");
         }
         return res.toString();
     }
