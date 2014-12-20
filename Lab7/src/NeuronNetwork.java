@@ -31,14 +31,14 @@ public class NeuronNetwork {
 
         hiddenLayer = new ArrayList<>();
         for (int i = 0; i < nHidden; i++) {
-            Neuron neuron = new Neuron(genRandomDoubles(28 * 28));
+            Neuron neuron = new Neuron(genRandomDoubles(28 * 28 + 1));
             hiddenLayer.add(neuron);
         }
 
 
         outLayer = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            Neuron neuron = new Neuron(genRandomDoubles(nHidden));
+            Neuron neuron = new Neuron(genRandomDoubles(nHidden + 1));
             outLayer.add(neuron);
         }
     }

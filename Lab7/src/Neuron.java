@@ -14,9 +14,10 @@ public class Neuron {
 
     public double activate(double[] data) {
         double sum = 0;
-        for (int i = 0; i < w.length; i++) {
+        for (int i = 0; i < data.length; i++) {
             sum += data[i] * w[i];
         }
+        sum += w[data.length];
         return f(sum);
     }
 }
