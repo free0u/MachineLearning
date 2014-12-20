@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import csv
 import math
+import random
 
 
 user_ids = set()
@@ -56,15 +57,18 @@ def read_test_ids():
 			id, user, item = map(int, row)
 			test_ids.append((id, user, item))
 
+def get_normal_vec(n):
+	ret = [random.gauss(0.4, 0.1) for i in range(n)]
+	return ret
 
 def train(f, lam, phi):
 	# print('> train')
 	for i in item_ids:
-		bi[i] = 0.0
-		qi[i] = [0.01] * f
+		bi[i] = get_normal_vec(1)[0]
+		qi[i] = get_normal_vec(f)
 	for u in user_ids:
-		bu[u] = 0.0
-		pu[u] = [0.01] * f
+		bu[u] = get_normal_vec(1)[0]
+		pu[u] = get_normal_vec(f)
 
 	cnt_iter = 0
 	old_rmse = 10 ** 9
@@ -95,7 +99,7 @@ def train(f, lam, phi):
 		rmse /= cnt_rates
 		print(cnt_iter, ':', rmse)
 
-		if (abs(old_rmse - rmse) < 1e-6) or (cnt_iter > 30):
+		if (abs(old_rmse - rmse) < 1e-6) or (cnt_iter > 15):
 			break
 
 		old_rmse = rmse
@@ -170,7 +174,7 @@ def test_on_valid():
 def main():
 	print('> main')
 	preprocess()
-
+	random.seed(0)
 
 	# f = 5
 	# lam = 0.00021207031250000002
@@ -236,7 +240,7 @@ def main():
 
 
     # found by something like grid search
-	f = 5
+	f = 100
 	lam = 0.00017207031250000002
 	phi = 0.0076
 	train(f, lam, phi)
