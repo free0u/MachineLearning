@@ -38,5 +38,18 @@ public class Main {
     public static void main(String[] args) throws IOException {
         List<Image> trainImages = readImages("train");
         List<Image> testImages = readImages("test");
+
+        NeuronNetwork net = new NeuronNetwork(30);
+        net.train(trainImages);
+
+        int cntErrors = 0;
+        for (Image image : testImages) {
+            int t = net.test(image);
+            if (t != image.type) {
+                cntErrors++;
+            }
+        }
+
+        System.out.printf("Errors: %.02f%%\n", 100.0 * cntErrors / testImages.size());
     }
 }
