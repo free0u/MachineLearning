@@ -138,6 +138,7 @@ public class NeuronNetwork {
         for (int i = 1; i < outValues.length; i++) {
             if (outValues[i] > bestValue) {
                 bestInd = (byte) i;
+                bestValue = outValues[i];
             }
         }
 
