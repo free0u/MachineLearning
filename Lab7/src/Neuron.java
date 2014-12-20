@@ -2,22 +2,31 @@
  * Created by free0u on 12/20/14.
  */
 public class Neuron {
-    double[] w;
+    double[] w, d;
+    double value;
+    double grad;
+
 
     public Neuron(double[] w) {
         this.w = w;
+        d = new double[w.length];
     }
 
-    public double f(double v) {
-        return 1.0 / (1.0 + Math.exp(-v));
+    public double f(double x) {
+        return 1.0 / (1.0 + Math.exp(-x));
+    }
+
+    public double fd(double x) {
+        double ex = Math.exp(x);
+        return ex / Math.pow(ex + 1, 2);
     }
 
     public double activate(double[] data) {
-        double sum = 0;
+        value = 0;
         for (int i = 0; i < data.length; i++) {
-            sum += data[i] * w[i];
+            value += data[i] * w[i];
         }
-        sum += w[data.length];
-        return f(sum);
+        value += w[data.length];
+        return f(value);
     }
 }
