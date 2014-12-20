@@ -1,3 +1,4 @@
+import javax.swing.plaf.basic.BasicSpinnerUI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -6,7 +7,7 @@ import java.util.Random;
  * Created by free0u on 12/20/14.
  */
 public class NeuronNetwork {
-    List<List<Neuron>> net;
+    List<Neuron> hiddenLayer, outLayer;
     Random rand;
 
 
@@ -28,23 +29,18 @@ public class NeuronNetwork {
     public NeuronNetwork(int nHidden) {
         rand = new Random(0);
 
-        net = new ArrayList<>();
-
-        List<Neuron> hidden = new ArrayList<>();
+        hiddenLayer = new ArrayList<>();
         for (int i = 0; i < nHidden; i++) {
             Neuron neuron = new Neuron(genRandomDoubles(28 * 28));
-            hidden.add(neuron);
+            hiddenLayer.add(neuron);
         }
 
-        net.add(hidden);
 
-        List<Neuron> out = new ArrayList<>();
+        outLayer = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             Neuron neuron = new Neuron(genRandomDoubles(nHidden));
-            out.add(neuron);
+            outLayer.add(neuron);
         }
-
-        net.add(out);
     }
 
     public void train(List<Image> data) {
@@ -53,8 +49,25 @@ public class NeuronNetwork {
 
 
     public byte test(Image ig) {
+        double[] hiddenOutValues = new double[hiddenLayer.size()];
+        for (int i = 0; i < hiddenLayer.size(); i++) {
+            hiddenOutValues[i] = hiddenLayer.get(i).activate(ig.data);
+        }
 
-        return 0;
+        double[] outOutValues = new double[10];
+        for (int i = 0; i < outLayer.size(); i++) {
+            outOutValues[i] = outLayer.get(i).activate(hiddenOutValues);
+        }
+
+        byte bestInd = 0;
+        double bestValue = outOutValues[0];
+        for (int i = 1; i < outOutValues.length; i++) {
+            if (outOutValues[i] > bestValue) {
+                bestInd = (byte) i;
+            }
+        }
+
+        return bestInd;
     }
 
 }
