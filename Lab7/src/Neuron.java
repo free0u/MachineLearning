@@ -3,7 +3,7 @@
  */
 public class Neuron {
     double[] w, d;
-    double value;
+    double out;
     double grad;
 
 
@@ -16,17 +16,18 @@ public class Neuron {
         return 1.0 / (1.0 + Math.exp(-x));
     }
 
-    public double fd(double x) {
+    public double fd2(double x) {
         double ex = Math.exp(x);
         return ex / Math.pow(ex + 1, 2);
     }
 
     public double activate(double[] data) {
-        value = 0;
+        double sum = 0;
         for (int i = 0; i < data.length; i++) {
-            value += data[i] * w[i];
+            sum += data[i] * w[i];
         }
-        value += w[data.length];
-        return f(value);
+//        value += w[data.length];
+        out = f(sum);
+        return out;
     }
 }

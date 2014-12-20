@@ -1,6 +1,4 @@
-import javax.swing.plaf.basic.BasicSpinnerUI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -32,21 +30,20 @@ public class NeuronNetwork {
 
         hiddenLayer = new ArrayList<>();
         for (int i = 0; i < nHidden; i++) {
-            Neuron neuron = new Neuron(genRandomDoubles(28 * 28 + 1));
+            Neuron neuron = new Neuron(genRandomDoubles(28 * 28));
             hiddenLayer.add(neuron);
         }
 
 
         outLayer = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            Neuron neuron = new Neuron(genRandomDoubles(nHidden + 1));
+            Neuron neuron = new Neuron(genRandomDoubles(nHidden));
             outLayer.add(neuron);
         }
     }
 
     public void train(List<Image> data) {
         double speed = 0.02;
-        double alp = 0.5;
 
         for (Image image : data) {
             double[] outcome = testImpl(image);
@@ -57,18 +54,14 @@ public class NeuronNetwork {
 
             // change out layer
             for (int i = 0; i < 10; i++) {
-                err = rightOutcome[i] - outcome[i];
+                err = -outcome[i] + rightOutcome[i];
 
                 Neuron neuron = outLayer.get(i);
-                neuron.grad = err * neuron.fd(neuron.value);
+                neuron.grad = err * neuron.out * (1 - neuron.out);
 
                 for (int j = 0; j < neuron.w.length; j++) {
-                    double prevValue = 1;
-                    if (j != neuron.w.length - 1) {
-                        Neuron prevNeuron = hiddenLayer.get(j);
-                        prevValue = prevNeuron.f(prevNeuron.value);
-                    }
-                    neuron.d[j] = speed * neuron.grad * prevValue;
+                    Neuron prevNeuron = hiddenLayer.get(j);
+                    neuron.d[j] = speed * neuron.grad * prevNeuron.out;
                 }
             }
 
@@ -82,34 +75,27 @@ public class NeuronNetwork {
                     err += nextNeuron.grad * nextNeuron.w[i];
                 }
 
-                neuron.grad = err * neuron.fd(neuron.value);
+                neuron.grad = err * neuron.out * (1 - neuron.out);
 
                 for (int j = 0; j < neuron.w.length; j++) {
-                    double prevValue = 1;
-                    if (j != neuron.w.length - 1) {
-                        prevValue = image.data[j];
-                    }
-                    neuron.d[j] = speed * neuron.grad * prevValue;
+                    neuron.d[j] = speed * neuron.grad * image.data[j];
                 }
 
             }
 
             // change weight of out layer
-            for (int i = 0; i < 10; i++) {
-                Neuron neuron = outLayer.get(i);
+            for (Neuron neuron : outLayer) {
                 for (int j = 0; j < neuron.w.length; j++) {
                     neuron.w[j] += neuron.d[j];
                 }
             }
 
             // change weight of hidden layer
-            for (int i = 0; i < hiddenLayer.size(); i++) {
-                Neuron neuron = hiddenLayer.get(i);
+            for (Neuron neuron : hiddenLayer) {
                 for (int j = 0; j < neuron.w.length; j++) {
                     neuron.w[j] += neuron.d[j];
                 }
             }
-
 
 //            break;
         }
